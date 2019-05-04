@@ -1,6 +1,3 @@
-TOKEN_NEWS = 'Some bot token'
-TOKEN_BOT = 'Some news token '
-
 DB_CONFIG = {
     'port': '5432',
     'host': '127.0.0.1',
@@ -8,6 +5,7 @@ DB_CONFIG = {
     'db': 'newsearch'
 }
 
+# count = 9
 COUNTRIES = {'China': 'cn',
              'France': 'fr',
              'Germany': 'de',
@@ -28,6 +26,7 @@ CATEGORIES = ['business',
               'technology'
               ]
 
+# will be needed later
 LANGUAGES = ['ar',
              'en',
              'cn',

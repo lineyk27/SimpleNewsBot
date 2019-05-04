@@ -10,7 +10,7 @@ def get_db_config(config):
                                                               config['db']
                                                               )
     except KeyError:
-        raise Exception('Haven\'t found needed keys for database config config.')
+        raise Exception('Haven\'t found needed keys for database config.')
         # TODO: need rewrite ex. message
 
 
@@ -18,10 +18,10 @@ def is_registered(chat_id, cursor=None):
     cursor = get_cursor(cursor)
 
     cursor.execute("""
-        SELECT chatid
-        FROM chats
-        WHERE chatid=%s;
-        """,
+    SELECT chatid
+    FROM chats
+    WHERE chatid=%s;
+    """,
                    (chat_id,))
 
     return bool(cursor.fetchone())
@@ -31,7 +31,8 @@ def is_registered(chat_id, cursor=None):
 
 def register(chat_id, cursor=None):
     cursor = get_cursor(cursor)
-    if is_registered(chat_id): return
+    if is_registered(chat_id):
+        return
     cursor.execute("""
     INSERT INTO chats(chatid)
     VALUES(%s);
@@ -44,11 +45,11 @@ def is_viewed(chat_id, url, cursor=None):
     cursor = get_cursor(cursor)
 
     cursor.execute("""
-        SELECT views.chatid
-        FROM views
-        INNER JOIN news ON views.newsid=news.newsid
-        WHERE views.chatid=%s AND news.url=%s ;
-        """,
+    SELECT views.chatid
+    FROM views
+    INNER JOIN news ON views.newsid=news.newsid
+    WHERE views.chatid=%s AND news.url=%s ;
+    """,
                    (chat_id, url))
 
     # TODO: need be retabulated
@@ -60,13 +61,12 @@ def is_subscribed(chat_id, category, cursor=None):
     cursor = get_cursor(cursor)
 
     cursor.execute("""
-        SELECT categories.name
-        FROM categories
-        INNER JOIN subscribes ON categories.categoryid=subscribes.categoryid
-        WHERE subscribes.chatid=%s AND categories.name=%s;
-        """,
-                   (chat_id, category)
-                   )
+    SELECT categories.name
+    FROM categories
+    INNER JOIN subscribes ON categories.categoryid=subscribes.categoryid
+    WHERE subscribes.chatid=%s AND categories.name=%s;
+    """,
+                   (chat_id, category))
 
     return bool(cursor.fetchone())
 
@@ -80,8 +80,7 @@ def get_language(chat_id, cursor=None):
     INNER JOIN languages ON languages.languageid=chats.languageid
     WHERE chats.chatid=%s;
     """,
-                   (chat_id,)
-                   )
+                   (chat_id,))
 
     return cursor.fetchone()[0]
 
@@ -90,12 +89,12 @@ def set_language(chat_id, language, cursor=None):
     cursor = get_cursor(cursor)
 
     cursor.execute("""
-        UPDATE chats
-        SET languageid=(SELECT languageid FROM languages WHERE name=%s)
-        WHERE chatid=%s;
-        """,
-                   (language, chat_id)
-                   )
+    UPDATE chats
+    SET languageid=(SELECT languageid FROM languages WHERE name=%s)
+    WHERE chatid=%s;
+    """,
+                   (language, chat_id))
+
     cursor.connection.commit()
 
 
@@ -254,4 +253,3 @@ def change_last_news(category, country, url, cursor=None):
                    (url, country, category))
 
     cursor.connection.commit()
-

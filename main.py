@@ -1,12 +1,12 @@
-from constant import *
 import telebot
-import db_funcs
 from telebot import types
-import newsapi_funcs
-
 from newsapi import newsapi_client
+import threading
 
-import multiprocessing
+from tokens import *
+from constant import COUNTRIES, CATEGORIES
+import db_funcs
+import newsapi_funcs
 
 client = newsapi_client.NewsApiClient(TOKEN_NEWS)
 
@@ -72,11 +72,12 @@ def get_info(message):
 def search(message):
     query = message.text
     chat_id = message.chat.id
-
     res = get_not_viewed_found(chat_id, query)
+
     if res is None:
         bot.send_message(chat_id, text='Nothing found!')
         return
+
     db_funcs.add_view(chat_id, res)
     bot.send_message(chat_id, text=res)
 
@@ -99,7 +100,7 @@ def get_country_keyboard():
     return markup
 
 
-def send_news(country, category, new):
+def send_news(category, country, new):
     subscribers = db_funcs.get_subscribers(category, country)
 
     for i in subscribers:
@@ -112,19 +113,18 @@ def get_not_viewed_found(chat_id, query):
     if not found:
         return
     url = ''
-    i = 0
+
     for i in found:
         if not db_funcs.is_viewed(chat_id, i):
             url = i
             break
 
-    if not url:
-        return None
-    return url
+    return None if not url else url
 
 
 if __name__ == '__main__':
-    checker = multiprocessing.Process(target=newsapi_funcs.notifier_news, args=(send_news, ))
-    checker.run()
+    bot_run = threading.Thread(target=bot.polling)
+    sender_run = threading.Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
 
-    bot.polling()
+    bot_run.start()
+    sender_run.start()
