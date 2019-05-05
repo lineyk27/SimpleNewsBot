@@ -3,7 +3,7 @@ from threading import Thread
 import telebot
 from telebot import types
 
-import tokens  # need contain TOKEN_NEWS and TOKEN_BOT
+import tokens  # must contain TOKEN_NEWS and TOKEN_BOT
 import constant
 import db_funcs
 import newsapi_funcs
@@ -28,6 +28,9 @@ buttons = {
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    """Send message info, set main keybord, send country keyboard,
+     register chat if isn't registered ."""
+    db_funcs.register(message.chat.id)
     bot.send_message(message.chat.id, text=INFO, reply_markup=get_main_keyboard())
     if not db_funcs.get_country(message.chat.id):
         bot.send_message(message.chat.id,
@@ -38,6 +41,7 @@ def start(message):
 
 @bot.callback_query_handler(lambda query: query.data.split(':')[0] == 'country')
 def set_country(query):
+    """Handle query with country info and set chat's country."""
     chat_id = query.message.chat.id
     country = query.data.split(':')[1]
     db_funcs.set_country(chat_id, country)
@@ -46,6 +50,7 @@ def set_country(query):
 
 @bot.callback_query_handler(lambda query: query.data.split(':')[0] == 'subscribe')
 def change_subscribe(query):
+    """Handle query with subscribe info and (un)subscribe chat on given category."""
     category = query.data.split(':')[1]
     chat_id = query.message.chat.id
     action = db_funcs.change_subscribe(chat_id, category)
@@ -54,21 +59,25 @@ def change_subscribe(query):
 
 @bot.message_handler(func=(lambda message: message.text == buttons['country']))
 def main_menu(message):
+    """Handle message send country keyboard that can set country."""
     bot.send_message(message.chat.id, text='Choose country: ', reply_markup=get_country_keyboard())
 
 
 @bot.message_handler(func=(lambda message: message.text == buttons['subscribe']))
 def subscribe(message):
+    """Handle message for send subscribes keyboard that can add subscribe."""
     bot.send_message(message.chat.id, text='Choose category: ', reply_markup=get_subscribes_keyboard())
 
 
 @bot.message_handler(func=(lambda message: message.text == buttons['info']))
 def get_info(message):
+    """Handle message for send main info message."""
     bot.send_message(message.chat.id, text=INFO)
 
 
 @bot.message_handler(content_types=['text'])
 def search(message):
+    """Handle all other massages and get found news by query."""
     query = message.text
     chat_id = message.chat.id
     res = get_not_viewed_found(chat_id, query)
@@ -82,24 +91,28 @@ def search(message):
 
 
 def get_subscribes_keyboard():
+    """Return keyboard with available subscribes."""
     markup = types.InlineKeyboardMarkup()
     markup.add(*[types.InlineKeyboardButton(text=i, callback_data='subscribe:' + i) for i in constant.CATEGORIES])
     return markup
 
 
 def get_main_keyboard():
+    """Return main keyboard."""
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(*[types.KeyboardButton(text=buttons[i]) for i in buttons])
     return markup
 
 
 def get_country_keyboard():
+    """Return country keyboard with available countries."""
     markup = types.InlineKeyboardMarkup()
     markup.add(*[types.InlineKeyboardButton(text=i, callback_data='country:' + i) for i in constant.COUNTRIES])
     return markup
 
 
 def send_news(category, country, new):
+    """Send news for subscribers."""
     subscribers = db_funcs.get_subscribers(category, country)
 
     for i in subscribers:
@@ -108,6 +121,7 @@ def send_news(category, country, new):
 
 
 def get_not_viewed_found(chat_id, query):
+    """Return not viewed latter by chat news urls."""
     found = newsapi_funcs.search_news(query, count=20)
     if not found:
         return None

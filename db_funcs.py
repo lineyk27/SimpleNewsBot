@@ -43,7 +43,7 @@ def register(chat_id, cursor=None):
     """Register chat in database."""
     cursor = get_cursor(cursor)
     if is_registered(chat_id):
-        return
+        return None
     cursor.execute("""
         INSERT INTO chats(chatid)
         VALUES(%s);
