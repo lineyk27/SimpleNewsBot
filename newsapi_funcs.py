@@ -2,18 +2,23 @@ from newsapi import newsapi_client
 import constant
 from time import sleep
 import db_funcs
-from tokens import *
+from tokens import TOKEN_NEWS
 
 client = newsapi_client.NewsApiClient(TOKEN_NEWS)
 
 
 def get_urls(news_dict):
-    # Return list of urls from dictionary returned by newsapi
-    return [i['url'] for i in news_dict['articles']]
+    """Return list of urls from dictionary returned by newsapi."""
+    try:
+        urls = [i['url'] for i in news_dict['articles']]
+    except KeyError:
+        return []
+    else:
+        return urls
 
 
 def notifier_news(callback):
-    # This function work all time, and callback(send news) if last news was changed
+    """This function work all time, and callback(send news) if last news was changed."""
     while True:
         for i in constant.CATEGORIES:
             for j in constant.COUNTRIES:
@@ -22,14 +27,16 @@ def notifier_news(callback):
                                                      page_size=1)
 
                 news_urls = get_urls(news_dict)
-                if news_urls[0] != db_funcs.get_last_news(i, j):
+
+                if news_urls and news_urls[0] != db_funcs.get_last_news(i, j):
                     callback(i, j, news_urls[0])
                     db_funcs.change_last_news(i, j, news_urls[0])
+
         sleep(7200)  # 2 hours
 
 
 def search_news(query, count=10):
-    # This function search news by query sorted by last time
+    """This function search news by query sorted by time of publishing."""
     try:
         res = client.get_everything(q=query,
                                     page_size=count,
@@ -37,7 +44,7 @@ def search_news(query, count=10):
                                     )
     except newsapi_client.NewsAPIException:
         return None
-    urls = [i['url'] for i in res['articles']]
+    urls = get_urls(res)
     if not bool(urls):
         return None
     return urls

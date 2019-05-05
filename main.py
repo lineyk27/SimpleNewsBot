@@ -1,16 +1,15 @@
+from threading import Thread
+
 import telebot
 from telebot import types
-from newsapi import newsapi_client
-import threading
 
-from tokens import *
-from constant import COUNTRIES, CATEGORIES
+import tokens  # need contain TOKEN_NEWS and TOKEN_BOT
+import constant
 import db_funcs
 import newsapi_funcs
 
-client = newsapi_client.NewsApiClient(TOKEN_NEWS)
 
-bot = telebot.TeleBot(TOKEN_BOT)
+bot = telebot.TeleBot(tokens.TOKEN_BOT)
 
 INFO = 'Hello, i am SimpleNews bot, i can search, send news by category.\n\r\n\r' \
        'What i can:\n\r' \
@@ -76,7 +75,7 @@ def search(message):
 
     if res is None:
         bot.send_message(chat_id, text='Nothing found!')
-        return
+        return None
 
     db_funcs.add_view(chat_id, res)
     bot.send_message(chat_id, text=res)
@@ -84,7 +83,7 @@ def search(message):
 
 def get_subscribes_keyboard():
     markup = types.InlineKeyboardMarkup()
-    markup.add(*[types.InlineKeyboardButton(text=i, callback_data='subscribe:' + i) for i in CATEGORIES])
+    markup.add(*[types.InlineKeyboardButton(text=i, callback_data='subscribe:' + i) for i in constant.CATEGORIES])
     return markup
 
 
@@ -96,7 +95,7 @@ def get_main_keyboard():
 
 def get_country_keyboard():
     markup = types.InlineKeyboardMarkup()
-    markup.add(*[types.InlineKeyboardButton(text=i, callback_data='country:' + i) for i in COUNTRIES])
+    markup.add(*[types.InlineKeyboardButton(text=i, callback_data='country:' + i) for i in constant.COUNTRIES])
     return markup
 
 
@@ -111,7 +110,7 @@ def send_news(category, country, new):
 def get_not_viewed_found(chat_id, query):
     found = newsapi_funcs.search_news(query, count=20)
     if not found:
-        return
+        return None
     url = ''
 
     for i in found:
@@ -123,8 +122,9 @@ def get_not_viewed_found(chat_id, query):
 
 
 if __name__ == '__main__':
-    bot_run = threading.Thread(target=bot.polling)
-    sender_run = threading.Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
+    # Will be rewritten with using multiprocessing for increase performance
+    bot_run = Thread(target=bot.polling)
+    sender_run = Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
 
     bot_run.start()
     sender_run.start()
