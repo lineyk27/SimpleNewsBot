@@ -116,8 +116,9 @@ def send_news(category, country, new):
     subscribers = db_funcs.get_subscribers(category, country)
 
     for i in subscribers:
-        bot.send_message(i, text=new)
-        db_funcs.add_view(i, new)
+        if not db_funcs.is_viewed(i, new):
+            bot.send_message(i, text=new)
+            db_funcs.add_view(i, new)
 
 
 def get_not_viewed_found(chat_id, query):
