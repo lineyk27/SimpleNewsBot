@@ -273,7 +273,7 @@ def change_last_news(category, country, url, cursor=None):
     cursor.execute("""
         UPDATE last_news
         SET newsid=(SELECT newsid FROM news WHERE url=%s)
-        WHERE categoryid=(SELECT countryid FROM countries WHERE name=%s)
+        WHERE countryid=(SELECT countryid FROM countries WHERE name=%s)
         AND categoryid=(SELECT categoryid FROM categories WHERE name=%s);
         """,
                    (url, country, category))
