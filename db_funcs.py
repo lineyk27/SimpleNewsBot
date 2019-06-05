@@ -1,5 +1,4 @@
-import constant
-import psycopg2
+import mysql.connector as connector
 
 
 def get_db_config(config):
@@ -15,11 +14,16 @@ def get_db_config(config):
     except KeyError:
         raise Exception('Haven\'t found needed keys for database config.')
 
+main_connection =  connector.connect(user='lineyk27',
+                                 password='pass-dd1y4d',
+                                 host='lineyk27.mysql.pythonanywhere-services.com',
+                                 database='lineyk27$simplenews'
+                                 )
 
 def get_cursor(cursor=None):
     """Returning cursor for connection to database."""
     if cursor is None:
-        return psycopg2.connect(get_db_config(constant.DB_CONFIG)).cursor()
+        return main_connection.cursor()
     return cursor
 
 
