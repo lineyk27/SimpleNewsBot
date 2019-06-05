@@ -1,5 +1,5 @@
 import mysql.connector as connector
-
+from constant import DB_CONFIG
 
 def get_db_config(config):
     """Return database configuration string from dictionary that
@@ -14,11 +14,11 @@ def get_db_config(config):
     except KeyError:
         raise Exception('Haven\'t found needed keys for database config.')
 
-main_connection =  connector.connect(user='lineyk27',
-                                 password='pass-dd1y4d',
-                                 host='lineyk27.mysql.pythonanywhere-services.com',
-                                 database='lineyk27$simplenews'
-                                 )
+main_connection =  connector.connect(user=DB_CONFIG['user'],
+                                     password=DB_CONFIG['password'],
+                                     host=DB_CONFIG['host'],
+                                     database=DB_CONFIG['database']
+                                    )
 
 def get_cursor(cursor=None):
     """Returning cursor for connection to database."""
