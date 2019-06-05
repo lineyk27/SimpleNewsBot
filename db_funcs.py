@@ -1,5 +1,5 @@
 import mysql.connector as connector
-from constant import DB_CONFIG
+from tokens import DB_CONFIG
 
 def get_db_config(config):
     """Return database configuration string from dictionary that

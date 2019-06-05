@@ -1,9 +1,3 @@
-DB_CONFIG = {
-    'port': '5432',
-    'host': '127.0.0.1',
-    'user': 'dev',
-    'db': 'newsearch'
-}
 
 # count = 9
 COUNTRIES = {'China': 'cn',
