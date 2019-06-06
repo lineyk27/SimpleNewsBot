@@ -1,5 +1,4 @@
 import mysql.connector as connector
-<<<<<<< HEAD
 from tokens import *
 
 
@@ -12,7 +11,6 @@ main_connection =  connector.connect(user=DB_CONFIG['user'],
 
 =======
 from tokens import DB_CONFIG
->>>>>>> 99f4c25... Small bugfixes
 
 def get_db_config(config):
     """Return database configuration string from dictionary that
