@@ -9,8 +9,6 @@ main_connection =  connector.connect(user=DB_CONFIG['user'],
                                      database=DB_CONFIG['database']
                                     )
 
-=======
-from tokens import DB_CONFIG
 
 def get_db_config(config):
     """Return database configuration string from dictionary that
