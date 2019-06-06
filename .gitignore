@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/__pycache__
+/share/python-wheels
+/lib/python3.6
+/include
+/env
+/bin
+/.vs/SimpleNewsBot/v16
+/.idea
+/SimpleNewsBot.pyproj
+/SimpleNewsBot.sln
