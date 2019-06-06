@@ -5,7 +5,6 @@ import tokens
 main_connection =  connector.connect(user=tokens.DB_CONFIG['user'],
                                      password=tokens.DB_CONFIG['password'],
                                      host=tokens.DB_CONFIG['host'],
-                                     port=tokens.tunnel.local_bind_port,
                                      database=tokens.DB_CONFIG['database']
                                     )
 
