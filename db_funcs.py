@@ -1,27 +1,14 @@
 import mysql.connector as connector
-from tokens import *
+import tokens
 
 
-main_connection =  connector.connect(user=DB_CONFIG['user'],
-                                     password=DB_CONFIG['password'],
-                                     host=DB_CONFIG['host'],
-                                     port=tunnel.local_bind_port,
-                                     database=DB_CONFIG['database']
+main_connection =  connector.connect(user=tokens.DB_CONFIG['user'],
+                                     password=tokens.DB_CONFIG['password'],
+                                     host=tokens.DB_CONFIG['host'],
+                                     port=tokens.tunnel.local_bind_port,
+                                     database=tokens.DB_CONFIG['database']
                                     )
 
-
-def get_db_config(config):
-    """Return database configuration string from dictionary that
-    returned by top_headlines search.
-    """
-    try:
-        return 'host={0} port={1} user={2} dbname={3}'.format(config['host'],
-                                                              config['port'],
-                                                              config['user'],
-                                                              config['db']
-                                                              )
-    except KeyError:
-        raise Exception('Haven\'t found needed keys for database config.')
 
 def get_cursor(cursor=None):
     """Returning cursor for connection to database."""
