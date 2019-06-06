@@ -138,8 +138,10 @@ def get_not_viewed_found(chat_id, query):
 
 if __name__ == '__main__':
     # Will be rewritten with using multiprocessing for increase performance
-    bot_run = Thread(target=bot.polling)
-    sender_run = Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
-
-    bot_run.start()
-    sender_run.start()
+    # bot_run = Thread(target=bot.polling)
+    # sender_run = Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
+    print("Hello, World!")
+    cursor = db_funcs.get_cursor()
+    a = cursor.execute("SELECT * FROM chats").fetchone()
+    # bot_run.start()
+    # sender_run.start()
