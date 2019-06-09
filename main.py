@@ -116,9 +116,9 @@ def send_news(category, country, new):
     subscribers = db_funcs.get_subscribers(category, country)
 
     for i in subscribers:
-        if not db_funcs.is_viewed(i, new):
-            bot.send_message(i, text=new)
-            db_funcs.add_view(i, new)
+        if not db_funcs.is_viewed(i[0], new):
+            bot.send_message(i[0], text=new)
+            db_funcs.add_view(i[0], new)
 
 
 def get_not_viewed_found(chat_id, query):
@@ -138,10 +138,13 @@ def get_not_viewed_found(chat_id, query):
 
 if __name__ == '__main__':
     # Will be rewritten with using multiprocessing for increase performance
-    # bot_run = Thread(target=bot.polling)
-    # sender_run = Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
-    print("Hello, World!")
-    cursor = db_funcs.get_cursor()
-    a = cursor.execute("SELECT * FROM chats").fetchone()
-    # bot_run.start()
-    # sender_run.start()
+    try:
+        bot_run = Thread(target=bot.polling)
+        sender_run = Thread(target=newsapi_funcs.notifier_news, args=(send_news, ))
+
+        bot_run.start()
+        sender_run.start()
+    finally:
+        # Here do domething, when stopped, crashed or smth else
+        print('Bot was stopped!')
+        print('Bot was stopped!')

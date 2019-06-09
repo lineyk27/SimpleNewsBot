@@ -22,13 +22,16 @@ def notifier_news(callback):
     while True:
         for i in constant.CATEGORIES:
             for j in constant.COUNTRIES:
-                news_dict = client.get_top_headlines(country=constant.COUNTRIES[j],
-                                                     category=i,
-                                                     page_size=1)
+                try:
+                    news_dict = client.get_top_headlines(country=constant.COUNTRIES[j],
+                                                         category=i,
+                                                         page_size=1)
+                except:
+                    continue
 
                 news_urls = get_urls(news_dict)
 
-                if news_urls and news_urls[0] != db_funcs.get_last_news(i, j):
+                if bool(news_urls) and news_urls[0] != db_funcs.get_last_news(i, j):
                     callback(i, j, news_urls[0])
                     db_funcs.change_last_news(i, j, news_urls[0])
 

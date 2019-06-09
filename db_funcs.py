@@ -9,10 +9,22 @@ main_connection =  connector.connect(user=tokens.DB_CONFIG['user'],
                                     )
 
 
+def connect():
+    main_connection =  connector.connect(user=tokens.DB_CONFIG['user'],
+                                     password=tokens.DB_CONFIG['password'],
+                                     host=tokens.DB_CONFIG['host'],
+                                     database=tokens.DB_CONFIG['database']
+                                    )
+
+
 def get_cursor(cursor=None):
     """Returning cursor for connection to database."""
     if cursor is None:
-        return main_connection.cursor()
+        try:
+            return main_connection.cursor()
+        except:
+            connect()
+            return main_connection.cursor()
     return cursor
 
 
@@ -21,9 +33,9 @@ def is_registered(chat_id, cursor=None):
     cursor = get_cursor(cursor)
 
     cursor.execute("""
-        SELECT chatid
+        SELECT id
         FROM chats
-        WHERE chatid=%d;
+        WHERE id=%d;
         """ % (chat_id,))
 
     return bool(cursor.fetchone())
@@ -37,10 +49,10 @@ def register(chat_id, cursor=None):
     if is_registered(chat_id):
         return None
     cursor.execute("""
-        INSERT INTO chats(chatid)
+        INSERT INTO chats(id)
         VALUES(%d);
         """ % (chat_id,))
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def is_viewed(chat_id, url, cursor=None):
@@ -50,7 +62,7 @@ def is_viewed(chat_id, url, cursor=None):
     cursor.execute("""
         SELECT views.chatid
         FROM views
-        INNER JOIN news ON views.newsid=news.newsid
+        INNER JOIN news ON views.newsid=news.id
         WHERE views.chatid=%d AND news.url='%s';
         """ % (chat_id, url))
 
@@ -64,7 +76,7 @@ def is_subscribed(chat_id, category, cursor=None):
     cursor.execute("""
         SELECT categories.name
         FROM categories
-        INNER JOIN subscribes ON categories.categoryid=subscribes.categoryid
+        INNER JOIN subscribes ON categories.id=subscribes.categoryid
         WHERE subscribes.chatid=%d AND categories.name='%s';
         """ % (chat_id, category))
 
@@ -81,10 +93,10 @@ def get_language(chat_id, cursor=None):
         SELECT languages.name
         FROM chats
         INNER JOIN languages ON languages.languageid=chats.languageid
-        WHERE chats.chatid=%d;
+        WHERE chats.id=%d;
         """ % (chat_id,))
 
-    return cursor.fetchone()[0]
+    return cursor.fetchone()
 
 
 def set_language(chat_id, language, cursor=None):
@@ -96,10 +108,10 @@ def set_language(chat_id, language, cursor=None):
     cursor.execute("""
         UPDATE chats
         SET languageid=(SELECT languageid FROM languages WHERE name='%s')
-        WHERE chatid=%d;
+        WHERE id=%d;
         """ % (language, chat_id))
 
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def get_country(chat_id, cursor=None):
@@ -109,8 +121,8 @@ def get_country(chat_id, cursor=None):
     cursor.execute("""
         SELECT countries.name
         FROM countries
-        INNER JOIN chats ON chats.countryid=countries.countryid
-        WHERE chats.chatid='%d';
+        INNER JOIN chats ON chats.countryid=countries.id
+        WHERE chats.id='%d';
         """ % (chat_id,))
     try:
         return cursor.fetchone()[0]
@@ -124,11 +136,11 @@ def set_country(chat_id, country, cursor=None):
 
     cursor.execute("""
         UPDATE chats
-        SET countryid=(SELECT countryid FROM countries WHERE name='%s')
-        WHERE chatid=%d;
+        SET countryid=(SELECT id FROM countries WHERE name='%s')
+        WHERE id=%d;
         """ % (country, chat_id)
                    )
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def add_view(chat_id, url, cursor=None):
@@ -140,10 +152,10 @@ def add_view(chat_id, url, cursor=None):
 
     cursor.execute("""
         INSERT INTO views
-        VALUES(%d, (SELECT news.newsid FROM news WHERE news.url='%s'));
+        VALUES(%d, (SELECT news.id FROM news WHERE news.url='%s'));
         """ % (chat_id, url))
 
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def add_news(url, cursor=None):
@@ -155,7 +167,7 @@ def add_news(url, cursor=None):
         VALUES('%s');
         """ % (url,))
 
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def is_news(url, cursor=None):
@@ -176,14 +188,14 @@ def get_subscribers(category, country, cursor=None):
     cursor = get_cursor(cursor)
 
     cursor.execute("""
-        SELECT chats.chatid
+        SELECT chats.id
         FROM (SELECT subscribes.chatid FROM subscribes
-              INNER JOIN categories ON subscribes.categoryid=categories.categoryid
+              INNER JOIN categories ON subscribes.categoryid=categories.id
               WHERE categories.name='%s') AS temp
-        INNER JOIN chats ON chats.chatid=temp.chatid
-        WHERE chats.countryid=(SELECT countryid FROM countries WHERE name='%s');
+        INNER JOIN chats ON chats.id=temp.chatid
+        WHERE chats.countryid=(SELECT id FROM countries WHERE name='%s');
         """ % (category, country))
-    return [i[0] for i in cursor.fetchall()]
+    return cursor.fetchall()
 
 
 def subscribe(chat_id, category, cursor=None):
@@ -192,10 +204,10 @@ def subscribe(chat_id, category, cursor=None):
 
     cursor.execute("""
         INSERT INTO subscribes
-        VALUES(%d, (SELECT categoryid FROM categories WHERE name='%s'));
+        VALUES(%d, (SELECT id FROM categories WHERE name='%s'));
         """ % (chat_id, category))
 
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def unsubscribe(chat_id, category, cursor=None):
@@ -204,10 +216,10 @@ def unsubscribe(chat_id, category, cursor=None):
 
     cursor.execute("""
         DELETE FROM subscribes
-        WHERE chatid=%d AND categoryid=(SELECT categoryid FROM categories WHERE name='%s');
+        WHERE chatid=%d AND categoryid=(SELECT id FROM categories WHERE name='%s');
         """ % (chat_id, category))
 
-    cursor.connection.commit()
+    main_connection.commit()
 
 
 def change_subscribe(chat_id, category, cursor=None):
@@ -233,12 +245,12 @@ def get_last_news(category, country, cursor=None):
     cursor.execute("""
         SELECT news.url
         FROM news
-        INNER JOIN last_news ON last_news.newsid=news.newsid
-        WHERE last_news.countryid=(SELECT countryid FROM countries WHERE name='%s')
-        AND last_news.categoryid=(SELECT categoryid FROM categories WHERE name='%s');
+        INNER JOIN last_news ON last_news.newsid=news.id
+        WHERE last_news.countryid=(SELECT id FROM countries WHERE name='%s')
+        AND last_news.categoryid=(SELECT id FROM categories WHERE name='%s');
         """ % (country, category))
 
-    return cursor.fetchone()[0]
+    return cursor.fetchall()
 
 
 def change_last_news(category, country, url, cursor=None):
@@ -250,9 +262,9 @@ def change_last_news(category, country, url, cursor=None):
 
     cursor.execute("""
         UPDATE last_news
-        SET newsid=(SELECT newsid FROM news WHERE url='%s')
-        WHERE countryid=(SELECT countryid FROM countries WHERE name='%s')
-        AND categoryid=(SELECT categoryid FROM categories WHERE name='%s');
+        SET newsid=(SELECT id FROM news WHERE url='%s')
+        WHERE countryid=(SELECT id FROM countries WHERE name='%s')
+        AND categoryid=(SELECT id FROM categories WHERE name='%s');
         """ % (url, country, category))
 
-    cursor.connection.commit()
+    main_connection.commit()
